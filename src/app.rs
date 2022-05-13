@@ -100,13 +100,14 @@ impl ClassNotes {
             });
         });
 
-        let (page_renderer, kibitz_renderer) = match self.page {
+        let (page_renderer, kibitz_renderer):
+            (fn(&mut egui::Ui), fn(&mut egui::Ui)) = match self.page {
             Page::KthSmallestIntro => (
-                ClassNotes::page_kth_smallest_intro as fn(&mut egui::Ui),
-                ClassNotes::kibitz_kth_smallest_intro as fn(&mut egui::Ui)),
+                ClassNotes::page_kth_smallest_intro,
+                ClassNotes::kibitz_kth_smallest_intro),
             _ => (
-                ClassNotes::page_none as fn(&mut egui::Ui),
-                ClassNotes::kibitz_none as fn(&mut egui::Ui)),
+                ClassNotes::page_none,
+                ClassNotes::kibitz_none),
         };
 
         egui::CentralPanel::default().show(ctx, page_renderer);
