@@ -9,6 +9,7 @@ pub struct ClassNotes {
     value: f32,
 
     mode: Mode,
+    page: Page,
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -18,6 +19,12 @@ enum Mode {
     NOTES,
 }
 
+#[derive(serde::Deserialize, serde::Serialize)]
+enum Page {
+    NONE,
+    KthSmallestIntro,
+}
+
 impl Default for ClassNotes {
     fn default() -> Self {
         Self {
@@ -25,6 +32,7 @@ impl Default for ClassNotes {
             label: "Hello World!".to_owned(),
             value: 3.1,
             mode: Mode::NOTES,
+            page: Page::NONE,
         }
     }
 }
@@ -57,8 +65,10 @@ impl ClassNotes {
 
         egui::SidePanel::left("side_panel").show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
-                egui::CollapsingHeader::new("heading").show(ui, |ui| {
-                    ui.label("Contents");
+                egui::CollapsingHeader::new("Kth Smallest").show(ui, |ui| {
+                    if ui.link("Intro").clicked() {
+                        self.page = Page::KthSmallestIntro
+                    };
                 });
                 egui::CollapsingHeader::new("heading2").show(ui, |ui| {
                     ui.label("Contents");
@@ -88,17 +98,12 @@ impl ClassNotes {
             });
         });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
-            // The central panel the region left after adding TopPanel's and SidePanel's
+        let page_renderer = match self.page {
+            Page::KthSmallestIntro => ClassNotes::page_kth_smallest_intro,
+            _ => ClassNotes::page_none,
+        };
 
-            ui.heading("web test");
-            ui.hyperlink("https://github.com/");
-            ui.add(egui::github_link_file!(
-                "https://github.com/kiblitz",
-                "Profile."
-            ));
-            egui::warn_if_debug_build(ui);
-        });
+        egui::CentralPanel::default().show(ctx, page_renderer);
 
         if true {
             egui::Window::new("Window").show(ctx, |ui| {
@@ -109,6 +114,18 @@ impl ClassNotes {
             });
         }
 
+    }
+
+    fn page_none(ui: &mut egui::Ui) {
+        ui.heading("web test");
+        ui.hyperlink("https://github.com/");
+        ui.add(egui::github_link_file!(
+            "https://github.com/kiblitz",
+            "Profile."
+        ));
+    }
+
+    fn page_kth_smallest_intro(_ui: &mut egui::Ui) {
     }
 }
 
