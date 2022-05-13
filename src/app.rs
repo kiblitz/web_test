@@ -10,6 +10,8 @@ pub struct ClassNotes {
 
     mode: Mode,
     page: Page,
+
+    kibitz: bool,
 }
 
 #[derive(serde::Deserialize, serde::Serialize)]
@@ -33,6 +35,7 @@ impl Default for ClassNotes {
             value: 3.1,
             mode: Mode::NOTES,
             page: Page::NONE,
+            kibitz: true,
         }
     }
 }
@@ -61,8 +64,6 @@ impl ClassNotes {
     pub fn update_notes(
         &mut self, ctx: &egui::Context, _frame: &mut eframe::Frame
     ) {
-        let Self { label, value, .. } = self;
-
         egui::SidePanel::left("side_panel").show(ctx, |ui| {
             egui::ScrollArea::vertical().show(ui, |ui| {
                 egui::CollapsingHeader::new("Kth Smallest").show(ui, |ui| {
@@ -79,12 +80,12 @@ impl ClassNotes {
 
             ui.horizontal(|ui| {
                 ui.label("Write something: ");
-                ui.text_edit_singleline(label);
+                ui.text_edit_singleline(&mut self.label);
             });
 
-            ui.add(egui::Slider::new(value, 0.0..=10.0).text("value"));
+            ui.add(egui::Slider::new(&mut self.value, 0.0..=9.9).text("value"));
             if ui.button("Increment").clicked() {
-                *value += 1.0;
+                self.value += 1.0;
             }
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
@@ -95,23 +96,23 @@ impl ClassNotes {
                     ui.label(" and ");
                     ui.hyperlink_to("eframe", "https://github.com/emilk/egui/tree/master/eframe");
                 });
+                ui.checkbox(&mut self.kibitz, "kiblitz's kibitz");
             });
         });
 
-        let page_renderer = match self.page {
-            Page::KthSmallestIntro => ClassNotes::page_kth_smallest_intro,
-            _ => ClassNotes::page_none,
+        let (page_renderer, kibitz_renderer) = match self.page {
+            Page::KthSmallestIntro => (
+                ClassNotes::page_kth_smallest_intro as fn(&mut egui::Ui),
+                ClassNotes::kibitz_kth_smallest_intro as fn(&mut egui::Ui)),
+            _ => (
+                ClassNotes::page_none as fn(&mut egui::Ui),
+                ClassNotes::kibitz_none as fn(&mut egui::Ui)),
         };
 
         egui::CentralPanel::default().show(ctx, page_renderer);
 
-        if true {
-            egui::Window::new("Window").show(ctx, |ui| {
-                ui.label("Windows can be moved by dragging them.");
-                ui.label("They are automatically sized based on contents.");
-                ui.label("You can turn on resizing and scrolling if you like.");
-                ui.label("You would normally chose either panels OR windows.");
-            });
+        if self.kibitz {
+            egui::Window::new("kibitz").show(ctx, kibitz_renderer);
         }
 
     }
@@ -125,7 +126,17 @@ impl ClassNotes {
         ));
     }
 
+    fn kibitz_none(ui: &mut egui::Ui) {
+        ui.label("Windows can be moved by dragging them.");
+        ui.label("They are automatically sized based on contents.");
+        ui.label("You can turn on resizing and scrolling if you like.");
+        ui.label("You would normally chose either panels OR windows.");
+    }
+
     fn page_kth_smallest_intro(_ui: &mut egui::Ui) {
+    }
+
+    fn kibitz_kth_smallest_intro(_ui: &mut egui::Ui) {
     }
 }
 
